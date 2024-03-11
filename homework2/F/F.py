@@ -15,23 +15,16 @@ def getBestprize(prizes, minAngleSpeed, maxAngleSpeed, speedReduction):
     
     if maxRotationCount - minRotationCount >= len(prizes):
         return max(prizes)
+    maxRotationCount = minRotationCount % len(prizes) + (maxRotationCount - minRotationCount)  % len(prizes)
+    minRotationCount = minRotationCount % len(prizes)
     
-    minRotationCount = minRotationCount
-    maxRotationCount = maxRotationCount
     #clockwise
     bestPrize = 0
-    for i in range(minRotationCount % len(prizes), min(len(prizes), maxRotationCount + 1)):
-        bestPrize = max(bestPrize, prizes[i])
-    
-    if maxRotationCount > len(prizes) and maxRotationCount % len(prizes) < minRotationCount % len(prizes):
-        for i in range(0, maxRotationCount % len(prizes)):
-            bestPrize = max(bestPrize, prizes[i])
-    
-    #anticlockwise
-    leftIndex = len(prizes) - maxRotationCount % len(prizes) if maxRotationCount > 0 else len(prizes)
-    rightIndex = len(prizes) - minRotationCount % len(prizes) if minRotationCount > 0 else len(prizes)
-    for i in range(leftIndex, rightIndex):
-        bestPrize = max(bestPrize, prizes[i])
+    for i in range(minRotationCount, maxRotationCount + 1):
+        bestPrize = max(bestPrize, prizes[i % len(prizes)])
+        anticlockwiseIndex = len(prizes) - i % len(prizes)
+        if anticlockwiseIndex < len(prizes):
+            bestPrize = max(bestPrize, prizes[anticlockwiseIndex])
     return bestPrize
     # 2 4 6 8
     # 0 1 2 3
