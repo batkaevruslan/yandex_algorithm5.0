@@ -13,45 +13,50 @@ def main():
 def getMaxHeight(berries: List[tuple[int, int]]):
     result = []
     maxHeight = 0
-    maxPositiveShift = 0
-    maxPositiveShiftBerry = None
-    maxPositiveShiftBerryIndex = -1
-
-    maxNonPositiveShiftBerryIndex = -1
-    maxNonPositiveShiftBerry = (-1, -1)
+   
+    maxNonPositiveShiftRaiseIndex = -1
     for i in range(len(berries)):
         currentBerry = berries[i]
         currentShift = currentBerry[0] - currentBerry[1]
         if currentShift > 0:
-            if currentShift > maxPositiveShift:
-                if maxPositiveShiftBerryIndex != -1:
-                    result.append(maxPositiveShiftBerryIndex + 1)
-                    maxHeight += maxPositiveShift
-                maxPositiveShiftBerryIndex = i
-                maxPositiveShift = currentShift
-                maxPositiveShiftBerry = currentBerry
-            else:
+            if len(result) == 0:
                 result.append(i)
-                maxHeight += currentShift
-        elif currentBerry[0] > maxNonPositiveShiftBerry[0]:
-            maxNonPositiveShiftBerryIndex = i
-            maxNonPositiveShiftBerry = currentBerry
+            else:
+                prevBerryIndex = result[-1]
+                prevBerry = berries[prevBerryIndex]
+                prevShift = prevBerry[0] - prevBerry[1]
+                if prevShift + currentBerry[0] > currentShift + prevBerry[0]:
+                    result.append(i)
+                else:
+                    result[-1] = i
+                    result.append(prevBerryIndex)
+        else:
+            if maxNonPositiveShiftRaiseIndex == -1:
+                maxNonPositiveShiftRaiseIndex = i
+            else:
+                prevNonPositiveShiftRaiseBerry = berries[maxNonPositiveShiftRaiseIndex]
+                if currentBerry[0] > prevNonPositiveShiftRaiseBerry[0]:
+                    maxNonPositiveShiftRaiseIndex = i
     
-    if maxPositiveShift + maxNonPositiveShiftBerry[0] > maxPositiveShiftBerry[0]:
-        maxHeight += maxPositiveShift + maxNonPositiveShiftBerry[0]
-        result.append(maxPositiveShiftBerryIndex + 1)
-        result.append(maxNonPositiveShiftBerryIndex + 1)
-    else:
-        maxHeight += maxNonPositiveShiftBerry[0]
-        result.append(maxNonPositiveShiftBerryIndex + 1)
-        result.append(maxPositiveShiftBerryIndex + 1)
+    currentHeight = 0
+    for i in range(len(result)):
+        berryIndex = result[i]
+        currentHeight += berries[berryIndex][0]
+        maxHeight = currentHeight
+        currentHeight -= berries[berryIndex][1]
+        result[i] += 1
+
+    if maxNonPositiveShiftRaiseIndex != -1:
+        currentHeight += berries[maxNonPositiveShiftRaiseIndex][0]
+        maxHeight = max(currentHeight, maxHeight)
+        result.append(maxNonPositiveShiftRaiseIndex + 1)
 
     for i in range(len(berries)):
         currentBerry = berries[i]
         currentShift = currentBerry[0] - currentBerry[1]
-        if currentShift <= 0 and i != maxNonPositiveShiftBerryIndex:
+        if currentShift <= 0 and i != maxNonPositiveShiftRaiseIndex:
             result.append(i + 1)
-    
+
     return (maxHeight, result)
 
 if __name__ == '__main__':
