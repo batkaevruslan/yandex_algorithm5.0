@@ -1,17 +1,16 @@
 
 from collections import deque
 
-
 def main():
     n, m = list(map(int, input().strip().split()))
     board = [[0] * m for _ in range(n)]
     for i in range(n):
         board[i] = list(map(int, input().strip().split()))
-    result = getWeakestHero(board, None, None)
+    result = getWeakestHero(board)
     print(f"{result[1][0] + 1} {result[1][1] + 1}")
 #1 2
 #3 4
-def getWeakestHero(board, forbiddenRowIndex, forbiddenColumnIndex):
+def getStrongestHeroCells(board, forbiddenRowIndex, forbiddenColumnIndex):
     strongestHero = 0
     strongestHeroCells = deque()
     for rowIndex in range(len(board)):
@@ -26,27 +25,37 @@ def getWeakestHero(board, forbiddenRowIndex, forbiddenColumnIndex):
                 strongestHeroCells.append((rowIndex, columnIndex))
             elif strongestHero == board[rowIndex][columnIndex]:
                 strongestHeroCells.append((rowIndex, columnIndex))
-    
-    if forbiddenColumnIndex != None and forbiddenRowIndex != None:
-        return (strongestHero, (forbiddenRowIndex, forbiddenColumnIndex))
+    return strongestHeroCells
+
+def getWeakestHero(board):
+    strongestHeroCells = getStrongestHeroCells(board, None, None)
     
     weakestHero = (float("inf"), (-1, -1))
-    if forbiddenRowIndex == None:
-        forbiddenRowIndicies = set()
-        for heroCell in strongestHeroCells:
-            if heroCell[0] not in forbiddenRowIndicies:
-                forbiddenRowIndicies.add(heroCell[0])
-                currentWeakHero = getWeakestHero(board, heroCell[0], forbiddenColumnIndex)
-                if currentWeakHero[0] < weakestHero[0]:
-                    weakestHero = currentWeakHero
-    if forbiddenColumnIndex == None:
-        forbiddenColumnIndex = set()
-        for heroCell in strongestHeroCells:
-            if heroCell[1] not in forbiddenColumnIndex:
-                forbiddenColumnIndex.add(heroCell[1])
-                currentWeakHero = getWeakestHero(board, forbiddenRowIndex, heroCell[1])
-                if currentWeakHero[0] < weakestHero[0]:
-                    weakestHero = currentWeakHero
+    forbiddenRowIndicies = set()
+    for heroCell in strongestHeroCells:
+        if heroCell[0] not in forbiddenRowIndicies:
+            forbiddenRowIndicies.add(heroCell[0])
+            strongestHerosFromForbiddenRow = getStrongestHeroCells(board, heroCell[0], None)
+            for heroFromForbiddenRow in strongestHerosFromForbiddenRow:
+                strongestHerosFromForbiddenRowAndColumn = getStrongestHeroCells(board, heroCell[0], heroFromForbiddenRow[1])
+                for currentWeakHero in strongestHerosFromForbiddenRowAndColumn:
+                    currentHeroPower = board[currentWeakHero[0]][currentWeakHero[1]]
+                    weakestHeroPower = weakestHero[0]
+                    if currentHeroPower < weakestHeroPower:
+                        weakestHero = (board[currentWeakHero[0]][currentWeakHero[1]], (heroCell[0], heroFromForbiddenRow[1]))
+    
+    forbiddenColumnIndex = set()
+    for heroCell in strongestHeroCells:
+        if heroCell[1] not in forbiddenColumnIndex:
+            forbiddenColumnIndex.add(heroCell[1])
+            strongestHerosFromForbiddenColumn = getStrongestHeroCells(board, None, heroCell[1])
+            for heroFromForbiddenColumn in strongestHerosFromForbiddenColumn:
+                strongestHerosFromForbiddenRowAndColumn = getStrongestHeroCells(board, heroFromForbiddenColumn[0], heroCell[1])
+                for currentWeakHero in strongestHerosFromForbiddenRowAndColumn:
+                    currentHeroPower = board[currentWeakHero[0]][currentWeakHero[1]]
+                    weakestHeroPower = weakestHero[0]
+                    if currentHeroPower < weakestHeroPower:
+                        weakestHero = (board[currentWeakHero[0]][currentWeakHero[1]], (heroFromForbiddenColumn[0], heroCell[1]))
     
     return weakestHero
 if __name__ == '__main__':
