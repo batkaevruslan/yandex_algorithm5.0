@@ -11,51 +11,61 @@ def main():
 #1 2
 #3 4
 def getStrongestHeroCells(board, forbiddenRowIndex, forbiddenColumnIndex):
-    strongestHero = 0
-    strongestHeroCells = deque()
+    strongestHeroPower = getStrongestHeroPower(board, forbiddenRowIndex, forbiddenColumnIndex)
+    strongestHeroRows = set()
+    strongestHeroColumns = set()
     for rowIndex in range(len(board)):
         if rowIndex == forbiddenRowIndex:
             continue
         for columnIndex in range(len(board[0])):
             if columnIndex == forbiddenColumnIndex:
                 continue
-            if strongestHero < board[rowIndex][columnIndex]:
-                strongestHero = board[rowIndex][columnIndex]
-                strongestHeroCells.clear()
-                strongestHeroCells.append((rowIndex, columnIndex))
-            elif strongestHero == board[rowIndex][columnIndex]:
-                strongestHeroCells.append((rowIndex, columnIndex))
-    return strongestHeroCells
+            if strongestHeroPower == board[rowIndex][columnIndex]:
+                strongestHeroRows.add(rowIndex)
+                strongestHeroColumns.add(columnIndex)
+    return (strongestHeroRows, strongestHeroColumns)
+
+def getStrongestHeroPower(board, forbiddenRowIndex, forbiddenColumnIndex):
+    strongestHeroPower = 0
+    for rowIndex in range(len(board)):
+        if rowIndex == forbiddenRowIndex:
+            continue
+        for columnIndex in range(len(board[0])):
+            if columnIndex == forbiddenColumnIndex:
+                continue
+            if strongestHeroPower < board[rowIndex][columnIndex]:
+                strongestHeroPower = board[rowIndex][columnIndex]
+    return strongestHeroPower
+
+def getStrongestPerRow(board):
+    strongestPerRow = [0] * len(board)
+    for rowIndex in range(len(board)):
+        strongest = 0
+        for columnIndex in range(len(board[0])):
+            strongest = max(strongest, board[rowIndex][columnIndex])
+        strongestPerRow[rowIndex] = strongest
+    return strongestPerRow
 
 def getWeakestHero(board):
-    strongestHeroCells = getStrongestHeroCells(board, None, None)
+    strongestPerRow = getStrongestPerRow(board)
+    strongestHeros = getStrongestHeroCells(board, None, None)
     
     weakestHero = (float("inf"), (-1, -1))
-    forbiddenRowIndicies = set()
-    for heroCell in strongestHeroCells:
-        if heroCell[0] not in forbiddenRowIndicies:
-            forbiddenRowIndicies.add(heroCell[0])
-            strongestHerosFromForbiddenRow = getStrongestHeroCells(board, heroCell[0], None)
-            for heroFromForbiddenRow in strongestHerosFromForbiddenRow:
-                strongestHerosFromForbiddenRowAndColumn = getStrongestHeroCells(board, heroCell[0], heroFromForbiddenRow[1])
-                for currentWeakHero in strongestHerosFromForbiddenRowAndColumn:
-                    currentHeroPower = board[currentWeakHero[0]][currentWeakHero[1]]
-                    weakestHeroPower = weakestHero[0]
-                    if currentHeroPower < weakestHeroPower:
-                        weakestHero = (board[currentWeakHero[0]][currentWeakHero[1]], (heroCell[0], heroFromForbiddenRow[1]))
+    for heroRow in strongestHeros[0]:
+        strongestHerosFromForbiddenRow = getStrongestHeroCells(board, heroRow, None)
+        for heroColumn in strongestHerosFromForbiddenRow[1]:
+            currentHeroPower = getStrongestHeroPower(board, heroRow, heroColumn)
+            weakestHeroPower = weakestHero[0]
+            if currentHeroPower < weakestHeroPower:
+                weakestHero = (currentHeroPower, (heroRow, heroColumn))
     
-    forbiddenColumnIndex = set()
-    for heroCell in strongestHeroCells:
-        if heroCell[1] not in forbiddenColumnIndex:
-            forbiddenColumnIndex.add(heroCell[1])
-            strongestHerosFromForbiddenColumn = getStrongestHeroCells(board, None, heroCell[1])
-            for heroFromForbiddenColumn in strongestHerosFromForbiddenColumn:
-                strongestHerosFromForbiddenRowAndColumn = getStrongestHeroCells(board, heroFromForbiddenColumn[0], heroCell[1])
-                for currentWeakHero in strongestHerosFromForbiddenRowAndColumn:
-                    currentHeroPower = board[currentWeakHero[0]][currentWeakHero[1]]
-                    weakestHeroPower = weakestHero[0]
-                    if currentHeroPower < weakestHeroPower:
-                        weakestHero = (board[currentWeakHero[0]][currentWeakHero[1]], (heroFromForbiddenColumn[0], heroCell[1]))
+    for heroColumn in strongestHeros[1]:
+        strongestHerosFromForbiddenColumn = getStrongestHeroCells(board, None, heroColumn)
+        for heroRow in strongestHerosFromForbiddenColumn[0]:
+            currentHeroPower = getStrongestHeroPower(board, heroRow, heroColumn)
+            weakestHeroPower = weakestHero[0]
+            if currentHeroPower < weakestHeroPower:
+                weakestHero = (currentHeroPower, (heroRow, heroColumn))
     
     return weakestHero
 if __name__ == '__main__':
